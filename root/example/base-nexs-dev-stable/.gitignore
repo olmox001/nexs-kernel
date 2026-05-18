@@ -1,0 +1,14 @@
+.DS_Store
+/stub
+/nexs_dbg.dSYM
+/build
+/.old
+/.claude
+test_out.txt
+*.o
+/hal/amd64/.boot
+/RELEASE
+/build
+nexs
+/scratch
+*.venv

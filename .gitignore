@@ -1,1 +1,8 @@
 scratch/*
+root/release/
+root/build/
+root/example/*/build_*
+*.tar.gz
+*.img
+*.elf
+*.o
