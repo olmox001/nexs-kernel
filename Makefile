@@ -246,6 +246,21 @@ run-nexs-x86_64:
 
 
 run-nexs-amd64: run-nexs-x86_64
+
+# ─────────────────────────────────────────────────────
+# NEXS Isolated Verification Targets (Delegated)
+# ─────────────────────────────────────────────────────
+verify-nexs-aarch64:
+	$(MAKE) -C $(NEXS_DIR) verify-nexs-aarch64 MICROKIT_SDK=$(SDK_DIR)
+
+verify-nexs-riscv64:
+	$(MAKE) -C $(NEXS_DIR) verify-nexs-riscv64 MICROKIT_SDK=$(SDK_DIR)
+
+verify-nexs-x86_64:
+	$(MAKE) -C $(NEXS_DIR) verify-nexs-x86_64 MICROKIT_SDK=$(SDK_DIR)
+
+verify-nexs-amd64: verify-nexs-x86_64
+
 # x86_32 (IA32) Declared Support Target
 x86_32:
 	@echo "========================================="
@@ -291,8 +306,8 @@ BASE_NEXS_DIR ?= dependencies/base-nexs
 fetch-deps:
 	@mkdir -p dependencies
 	@if [ ! -d "$(BASE_NEXS_DIR)" ]; then \
-		echo "[deps] Cloning base-nexs (branch dev-sel4)..."; \
-		git clone --branch dev-sel4 https://github.com/olmox001/base-nexs.git $(BASE_NEXS_DIR); \
+		echo "[deps] Cloning base-nexs (branch dev-stable)..."; \
+		git clone --branch dev-stable https://github.com/olmox001/base-nexs.git $(BASE_NEXS_DIR); \
 	else \
 		echo "[deps] Updating base-nexs..."; \
 		git -C $(BASE_NEXS_DIR) pull; \
