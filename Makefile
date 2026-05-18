@@ -1,8 +1,8 @@
 # Root Makefile for seL4 + Microkit Multi-Architecture Development
 
 # Host tools and environment configuration
-export PATH := /Users/olmo/.cargo/bin:/usr/local/opt/llvm/bin:$(PATH)
-PYTHON := /Users/olmo/Documents/git/nexskernel/scratch/venv/bin/python3
+export PATH := $(HOME)/.cargo/bin:/usr/local/opt/llvm/bin:$(PATH)
+PYTHON := $(ROOT_DIR)/scratch/venv/bin/python3
 LLVM := True
 
 # Workspace Directories
@@ -43,6 +43,8 @@ build-sdk-x86_64:
 	@echo "Building SDK for AMD64 (x86_64_generic)..."
 	@echo "========================================="
 	cd $(SDK_SRC_DIR) && $(PYTHON) build_sdk.py --sel4 $(SEL4_SRC_DIR) --boards x86_64_generic --configs debug --skip-docs --llvm
+
+build-sdk-amd64: build-sdk-x86_64
 
 # AArch64 (qemu_virt_aarch64) Target
 aarch64:
@@ -100,8 +102,8 @@ x86_64:
 # NEXS stable directory
 NEXS_DIR := $(SDK_SRC_DIR)/example/base-nexs-dev-stable
 
-# run-nexs-aarch64: Compile and simulate NEXS on AArch64
 run-nexs-aarch64:
+	@if [ ! -d "$(SDK_DIR)/board/qemu_virt_aarch64" ]; then $(MAKE) build-sdk-aarch64; fi
 	@echo "========================================="
 	@echo "Compiling NEXS Stable for AArch64..."
 	@echo "========================================="
@@ -127,8 +129,8 @@ run-nexs-aarch64:
 		-device loader,file=$(NEXS_DIR)/build_aarch64/loader.img,addr=0x70000000,cpu-num=0 \
 		-m size=2G
 
-# run-nexs-riscv64: Compile and simulate NEXS on RISC-V 64-bit
 run-nexs-riscv64:
+	@if [ ! -d "$(SDK_DIR)/board/qemu_virt_riscv64" ]; then $(MAKE) build-sdk-riscv64; fi
 	@echo "========================================="
 	@echo "Compiling NEXS Stable for RISC-V 64-bit..."
 	@echo "========================================="
@@ -153,8 +155,8 @@ run-nexs-riscv64:
 		-kernel $(NEXS_DIR)/build_riscv64/loader.img \
 		-m size=2G
 
-# run-nexs-x86_64: Compile and simulate NEXS on AMD64
 run-nexs-x86_64:
+	@if [ ! -d "$(SDK_DIR)/board/x86_64_generic" ]; then $(MAKE) build-sdk-x86_64; fi
 	@echo "========================================="
 	@echo "Compiling NEXS Stable for AMD64..."
 	@echo "========================================="
@@ -180,7 +182,7 @@ run-nexs-x86_64:
 		-kernel $(NEXS_DIR)/build_x86_64/sel4_32.elf \
 		-initrd $(NEXS_DIR)/build_x86_64/loader.img
 
-
+run-nexs-amd64: run-nexs-x86_64
 # x86_32 (IA32) Declared Support Target
 x86_32:
 	@echo "========================================="

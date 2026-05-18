@@ -63,12 +63,8 @@ void init(void) {
         EvalResult r = eval_str(&ctx, fallback);
         val_free(&r.ret_val);
 
-#if defined(__aarch64__) || defined(__riscv)
         nexs_hal_print("[NEXS] Starting interactive NEXS shell (REPL)...\n");
         nexs_repl();
-#else
-        nexs_hal_print("[NEXS] Interactive shell is only supported on AArch64 and RISC-V 64 targets.\n");
-#endif
     }
 
     nexs_hal_print("[NEXS] Protection Domain initialization complete.\n");
