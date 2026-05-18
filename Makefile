@@ -1,13 +1,13 @@
 # Root Makefile for seL4 + Microkit Multi-Architecture Development
 
+# Workspace Directories (must come first — other variables depend on ROOT_DIR)
+ROOT_DIR     := $(shell pwd)
+SDK_SRC_DIR  := $(ROOT_DIR)/root
+
 # Host tools and environment configuration
 export PATH := $(HOME)/.cargo/bin:/usr/local/opt/llvm/bin:$(PATH)
 PYTHON := $(ROOT_DIR)/scratch/venv/bin/python3
 LLVM := True
-
-# Workspace Directories
-ROOT_DIR     := $(shell pwd)
-SDK_SRC_DIR  := $(ROOT_DIR)/root
 
 # seL4 kernel source:
 #   kernel/   = local project copy of seL4 core (kernel/ + aarch/ for ARM).
@@ -20,10 +20,39 @@ SEL4_SRC_DIR := $(ROOT_DIR)/scratch/reference/seL4
 SDK_DIR      := $(SDK_SRC_DIR)/release/microkit-sdk-2.2.0-dev
 EXAMPLE_DIR  := $(SDK_SRC_DIR)/example/hello
 
-.PHONY: all clean aarch64 riscv64 x86_64 x86_32 kernel-check kernel-merge
+.PHONY: all help clean clean-sdk clean-all \
+        aarch64 riscv64 x86_64 x86_32 \
+        build-sdk-aarch64 build-sdk-riscv64 build-sdk-x86_64 build-sdk-amd64 \
+        kernel-check kernel-merge \
+        fetch-deps nexs-host \
+        nexs-sel4-aarch64 nexs-sel4-riscv64 nexs-sel4-x86_64 \
+        nexs-run-aarch64 nexs-run-riscv64 nexs-run-x86_64 \
+        run-nexs-aarch64 run-nexs-riscv64 run-nexs-x86_64 run-nexs-amd64
 
-all:
-	@echo "Please specify a target architecture: aarch64, riscv64, x86_64, x86_32"
+all: help
+
+help:
+	@echo "nexskernel — available targets:"
+	@echo ""
+	@echo "  SDK build:"
+	@echo "    build-sdk-aarch64   Build Microkit SDK for aarch64"
+	@echo "    build-sdk-riscv64   Build Microkit SDK for riscv64"
+	@echo "    build-sdk-x86_64    Build Microkit SDK for x86_64"
+	@echo ""
+	@echo "  NEXS (base-nexs):"
+	@echo "    run-nexs-aarch64    Compile + package + run NEXS under seL4 aarch64"
+	@echo "    run-nexs-riscv64    Compile + package + run NEXS under seL4 riscv64"
+	@echo "    run-nexs-x86_64     Compile + package + run NEXS under seL4 x86_64"
+	@echo "    nexs-host           Build the hosted NEXS interpreter"
+	@echo ""
+	@echo "  Hello-world examples:"
+	@echo "    aarch64 / riscv64 / x86_64   Build + run Microkit hello-world"
+	@echo ""
+	@echo "  Dependency management:"
+	@echo "    sel4-initializer    Clone/update nexs-kernel SDK builder"
+	@echo "    fetch-deps          Clone/update base-nexs runtime"
+	@echo ""
+	@echo "  SDK path: SDK_DIR=$(SDK_DIR)"
 
 # SDK Build Targets
 build-sdk-aarch64:
@@ -99,21 +128,32 @@ x86_64:
 		-kernel $(EXAMPLE_DIR)/build_x86_64/sel4_32.elf \
 		-initrd $(EXAMPLE_DIR)/build_x86_64/loader.img
 
-# NEXS stable directory
-NEXS_DIR := $(SDK_SRC_DIR)/example/base-nexs-dev-stable
+# NEXS runtime directory (populated by fetch-deps)
+NEXS_DIR := $(SDK_SRC_DIR)/example/base-nexs
 
 run-nexs-aarch64:
-	@if [ ! -d "$(SDK_DIR)/board/qemu_virt_aarch64" ]; then $(MAKE) build-sdk-aarch64; fi
+	@if [ ! -d "$(NEXS_DIR)" ]; then \
+		echo ""; \
+		echo "[error] NEXS runtime not found at $(NEXS_DIR)"; \
+		echo "        Run:  make fetch-deps"; \
+		echo "        This will clone base-nexs and copy it into root/example/base-nexs."; \
+		echo ""; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(SDK_DIR)/board/qemu_virt_aarch64/debug/include/kernel/gen_config.h" ]; then \
+		echo "SDK not built for aarch64. Run: make build-sdk-aarch64"; \
+		exit 1; \
+	fi
 	@echo "========================================="
-	@echo "Compiling NEXS Stable for AArch64..."
+	@echo "Compiling NEXS Stable (multi-PD) for AArch64..."
 	@echo "========================================="
-	$(MAKE) -C $(NEXS_DIR) sel4-microkit MICROKIT_BOARD=qemu_virt_aarch64 MICROKIT_CONFIG=debug MICROKIT_SDK=$(SDK_DIR)
+	$(MAKE) -C $(NEXS_DIR) sel4-multikernel-aarch64 MICROKIT_SDK=$(SDK_DIR)
 	@echo "========================================="
 	@echo "Packaging NEXS Protection Domain Image..."
 	@echo "========================================="
 	mkdir -p $(NEXS_DIR)/build_aarch64
-	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/nexs_aarch64.system \
-		--search-path $(NEXS_DIR)/build/sel4-microkit \
+	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/hal/sel4/nexs_aarch64.system \
+		--search-path $(NEXS_DIR)/build/sel4-multikernel \
 		--board qemu_virt_aarch64 \
 		--config debug \
 		-o $(NEXS_DIR)/build_aarch64/loader.img \
@@ -130,17 +170,28 @@ run-nexs-aarch64:
 		-m size=2G
 
 run-nexs-riscv64:
-	@if [ ! -d "$(SDK_DIR)/board/qemu_virt_riscv64" ]; then $(MAKE) build-sdk-riscv64; fi
+	@if [ ! -d "$(NEXS_DIR)" ]; then \
+		echo ""; \
+		echo "[error] NEXS runtime not found at $(NEXS_DIR)"; \
+		echo "        Run:  make fetch-deps"; \
+		echo "        This will clone base-nexs and copy it into root/example/base-nexs."; \
+		echo ""; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(SDK_DIR)/board/qemu_virt_riscv64/debug/include/kernel/gen_config.h" ]; then \
+		echo "SDK not built for riscv64. Run: make build-sdk-riscv64"; \
+		exit 1; \
+	fi
 	@echo "========================================="
-	@echo "Compiling NEXS Stable for RISC-V 64-bit..."
+	@echo "Compiling NEXS Stable (multi-PD) for RISC-V 64-bit..."
 	@echo "========================================="
-	$(MAKE) -C $(NEXS_DIR) sel4-microkit MICROKIT_BOARD=qemu_virt_riscv64 MICROKIT_CONFIG=debug MICROKIT_SDK=$(SDK_DIR)
+	$(MAKE) -C $(NEXS_DIR) sel4-multikernel-riscv64 MICROKIT_SDK=$(SDK_DIR)
 	@echo "========================================="
 	@echo "Packaging NEXS Protection Domain Image..."
 	@echo "========================================="
 	mkdir -p $(NEXS_DIR)/build_riscv64
-	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/nexs_riscv64.system \
-		--search-path $(NEXS_DIR)/build/sel4-microkit \
+	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/hal/sel4/nexs_riscv64.system \
+		--search-path $(NEXS_DIR)/build/sel4-multikernel \
 		--board qemu_virt_riscv64 \
 		--config debug \
 		-o $(NEXS_DIR)/build_riscv64/loader.img \
@@ -156,17 +207,28 @@ run-nexs-riscv64:
 		-m size=2G
 
 run-nexs-x86_64:
-	@if [ ! -d "$(SDK_DIR)/board/x86_64_generic" ]; then $(MAKE) build-sdk-x86_64; fi
+	@if [ ! -d "$(NEXS_DIR)" ]; then \
+		echo ""; \
+		echo "[error] NEXS runtime not found at $(NEXS_DIR)"; \
+		echo "        Run:  make fetch-deps"; \
+		echo "        This will clone base-nexs and copy it into root/example/base-nexs."; \
+		echo ""; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(SDK_DIR)/board/x86_64_generic/debug/include/kernel/gen_config.h" ]; then \
+		echo "SDK not built for x86_64. Run: make build-sdk-x86_64"; \
+		exit 1; \
+	fi
 	@echo "========================================="
-	@echo "Compiling NEXS Stable for AMD64..."
+	@echo "Compiling NEXS Stable (multi-PD) for AMD64..."
 	@echo "========================================="
-	$(MAKE) -C $(NEXS_DIR) sel4-microkit MICROKIT_BOARD=x86_64_generic MICROKIT_CONFIG=debug MICROKIT_SDK=$(SDK_DIR)
+	$(MAKE) -C $(NEXS_DIR) sel4-multikernel-x86_64 MICROKIT_SDK=$(SDK_DIR)
 	@echo "========================================="
 	@echo "Packaging NEXS Protection Domain Image..."
 	@echo "========================================="
 	mkdir -p $(NEXS_DIR)/build_x86_64
-	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/nexs_x86_64.system \
-		--search-path $(NEXS_DIR)/build/sel4-microkit \
+	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/hal/sel4/nexs_x86_64.system \
+		--search-path $(NEXS_DIR)/build/sel4-multikernel \
 		--board x86_64_generic \
 		--config debug \
 		-o $(NEXS_DIR)/build_x86_64/loader.img \
@@ -182,7 +244,23 @@ run-nexs-x86_64:
 		-kernel $(NEXS_DIR)/build_x86_64/sel4_32.elf \
 		-initrd $(NEXS_DIR)/build_x86_64/loader.img
 
+
 run-nexs-amd64: run-nexs-x86_64
+
+# ─────────────────────────────────────────────────────
+# NEXS Isolated Verification Targets (Delegated)
+# ─────────────────────────────────────────────────────
+verify-nexs-aarch64:
+	$(MAKE) -C $(NEXS_DIR) verify-nexs-aarch64 MICROKIT_SDK=$(SDK_DIR)
+
+verify-nexs-riscv64:
+	$(MAKE) -C $(NEXS_DIR) verify-nexs-riscv64 MICROKIT_SDK=$(SDK_DIR)
+
+verify-nexs-x86_64:
+	$(MAKE) -C $(NEXS_DIR) verify-nexs-x86_64 MICROKIT_SDK=$(SDK_DIR)
+
+verify-nexs-amd64: verify-nexs-x86_64
+
 # x86_32 (IA32) Declared Support Target
 x86_32:
 	@echo "========================================="
@@ -220,13 +298,65 @@ kernel-merge:
 		cp $(ROOT_DIR)/aarch/config.cmake $(SEL4_LOCAL)/src/arch/arm/ || true
 	@echo "Done. Now set SEL4_SRC_DIR := \$$(SEL4_LOCAL) in this Makefile and rebuild."
 
-# Clean all build outputs
+# ─────────────────────────────────────────────────────
+# Dependency Management
+# ─────────────────────────────────────────────────────
+BASE_NEXS_DIR ?= dependencies/base-nexs
+
+fetch-deps:
+	@mkdir -p dependencies
+	@if [ ! -d "$(BASE_NEXS_DIR)" ]; then \
+		echo "[deps] Cloning base-nexs (branch dev-stable)..."; \
+		git clone --branch dev-stable https://github.com/olmox001/base-nexs.git $(BASE_NEXS_DIR); \
+	else \
+		echo "[deps] Updating base-nexs..."; \
+		git -C $(BASE_NEXS_DIR) pull; \
+	fi
+	@echo "[deps] Copying base-nexs → $(NEXS_DIR) ..."
+	@mkdir -p $(NEXS_DIR)
+	@cp -r $(BASE_NEXS_DIR)/. $(NEXS_DIR)/
+	@echo "[deps] base-nexs ready at $(NEXS_DIR)"
+
+# Build the NEXS host binary from base-nexs dependency
+nexs-host: fetch-deps
+	$(MAKE) -C $(BASE_NEXS_DIR) all
+
+# Build seL4 target using base-nexs + local SDK
+nexs-sel4-aarch64: nexs-host
+	$(MAKE) -C $(BASE_NEXS_DIR) sel4-aarch64 MICROKIT_SDK=$(SDK_DIR)
+
+nexs-sel4-riscv64: nexs-host
+	$(MAKE) -C $(BASE_NEXS_DIR) sel4-riscv64 MICROKIT_SDK=$(SDK_DIR)
+
+nexs-sel4-x86_64: nexs-host
+	$(MAKE) -C $(BASE_NEXS_DIR) sel4-x86_64 MICROKIT_SDK=$(SDK_DIR)
+
+# Run NEXS under seL4 QEMU
+nexs-run-aarch64: nexs-sel4-aarch64
+	$(MAKE) -C $(BASE_NEXS_DIR) sel4-run-aarch64 MICROKIT_SDK=$(SDK_DIR)
+
+nexs-run-riscv64: nexs-sel4-riscv64
+	$(MAKE) -C $(BASE_NEXS_DIR) sel4-run-riscv64 MICROKIT_SDK=$(SDK_DIR)
+
+nexs-run-x86_64: nexs-sel4-x86_64
+	$(MAKE) -C $(BASE_NEXS_DIR) sel4-run-x86_64 MICROKIT_SDK=$(SDK_DIR)
+
+# Clean build outputs (SDK is preserved — use clean-sdk to also wipe the SDK)
 clean:
-	@echo "Cleaning workspace build directories..."
+	@echo "Cleaning workspace build directories (SDK preserved)..."
 	rm -rf $(EXAMPLE_DIR)/build_aarch64
 	rm -rf $(EXAMPLE_DIR)/build_riscv64
 	rm -rf $(EXAMPLE_DIR)/build_x86_64
-	rm -rf $(SDK_SRC_DIR)/release
 	rm -rf $(SDK_SRC_DIR)/build
 	rm -rf $(SDK_SRC_DIR)/target
-	@echo "Clean completed successfully!"
+	@echo "Clean completed. SDK untouched at $(SDK_DIR)"
+
+# Remove only the compiled SDK (forces rebuild on next build-sdk-* call)
+clean-sdk:
+	@echo "Removing compiled SDK at $(SDK_SRC_DIR)/release ..."
+	rm -rf $(SDK_SRC_DIR)/release
+	@echo "SDK removed. Rebuild with: make build-sdk-<arch>"
+
+# Remove everything including SDK
+clean-all: clean clean-sdk
+	@echo "Full clean completed."
