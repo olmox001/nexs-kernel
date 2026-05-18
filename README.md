@@ -2,6 +2,8 @@
 
 This repository builds the Microkit SDK and runs **NEXS** (a Plan 9-style language runtime) as a seL4 Protection Domain.
 
+--Thanks to all the maintainers of the sel4 and microkit code--
+
 **NEXS runtime** lives in a separate repository: [olmox001/base-nexs](https://github.com/olmox001/base-nexs).
 
 ## Quick start

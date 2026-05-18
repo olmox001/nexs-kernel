@@ -145,15 +145,15 @@ run-nexs-aarch64:
 		exit 1; \
 	fi
 	@echo "========================================="
-	@echo "Compiling NEXS Stable for AArch64..."
+	@echo "Compiling NEXS Stable (multi-PD) for AArch64..."
 	@echo "========================================="
-	$(MAKE) -C $(NEXS_DIR) sel4-microkit MICROKIT_BOARD=qemu_virt_aarch64 MICROKIT_CONFIG=debug MICROKIT_SDK=$(SDK_DIR)
+	$(MAKE) -C $(NEXS_DIR) sel4-multikernel-aarch64 MICROKIT_SDK=$(SDK_DIR)
 	@echo "========================================="
 	@echo "Packaging NEXS Protection Domain Image..."
 	@echo "========================================="
 	mkdir -p $(NEXS_DIR)/build_aarch64
 	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/hal/sel4/nexs_aarch64.system \
-		--search-path $(NEXS_DIR)/build/sel4-microkit \
+		--search-path $(NEXS_DIR)/build/sel4-multikernel \
 		--board qemu_virt_aarch64 \
 		--config debug \
 		-o $(NEXS_DIR)/build_aarch64/loader.img \
@@ -183,15 +183,15 @@ run-nexs-riscv64:
 		exit 1; \
 	fi
 	@echo "========================================="
-	@echo "Compiling NEXS Stable for RISC-V 64-bit..."
+	@echo "Compiling NEXS Stable (multi-PD) for RISC-V 64-bit..."
 	@echo "========================================="
-	$(MAKE) -C $(NEXS_DIR) sel4-microkit MICROKIT_BOARD=qemu_virt_riscv64 MICROKIT_CONFIG=debug MICROKIT_SDK=$(SDK_DIR)
+	$(MAKE) -C $(NEXS_DIR) sel4-multikernel-riscv64 MICROKIT_SDK=$(SDK_DIR)
 	@echo "========================================="
 	@echo "Packaging NEXS Protection Domain Image..."
 	@echo "========================================="
 	mkdir -p $(NEXS_DIR)/build_riscv64
 	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/hal/sel4/nexs_riscv64.system \
-		--search-path $(NEXS_DIR)/build/sel4-microkit \
+		--search-path $(NEXS_DIR)/build/sel4-multikernel \
 		--board qemu_virt_riscv64 \
 		--config debug \
 		-o $(NEXS_DIR)/build_riscv64/loader.img \
@@ -220,15 +220,15 @@ run-nexs-x86_64:
 		exit 1; \
 	fi
 	@echo "========================================="
-	@echo "Compiling NEXS Stable for AMD64..."
+	@echo "Compiling NEXS Stable (multi-PD) for AMD64..."
 	@echo "========================================="
-	$(MAKE) -C $(NEXS_DIR) sel4-microkit MICROKIT_BOARD=x86_64_generic MICROKIT_CONFIG=debug MICROKIT_SDK=$(SDK_DIR)
+	$(MAKE) -C $(NEXS_DIR) sel4-multikernel-x86_64 MICROKIT_SDK=$(SDK_DIR)
 	@echo "========================================="
 	@echo "Packaging NEXS Protection Domain Image..."
 	@echo "========================================="
 	mkdir -p $(NEXS_DIR)/build_x86_64
 	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/hal/sel4/nexs_x86_64.system \
-		--search-path $(NEXS_DIR)/build/sel4-microkit \
+		--search-path $(NEXS_DIR)/build/sel4-multikernel \
 		--board x86_64_generic \
 		--config debug \
 		-o $(NEXS_DIR)/build_x86_64/loader.img \
@@ -243,6 +243,7 @@ run-nexs-x86_64:
 		-serial mon:stdio \
 		-kernel $(NEXS_DIR)/build_x86_64/sel4_32.elf \
 		-initrd $(NEXS_DIR)/build_x86_64/loader.img
+
 
 run-nexs-amd64: run-nexs-x86_64
 # x86_32 (IA32) Declared Support Target
