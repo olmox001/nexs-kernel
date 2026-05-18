@@ -7,3 +7,7 @@ root/example/*/build_*
 *.img
 *.elf
 *.o
+*.DS_Store
+root/example/base-nexs-dev-stable/
+# Dipendenze scaricate localmente
+dependencies/

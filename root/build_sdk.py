@@ -1031,12 +1031,13 @@ def main() -> None:
 
         # Build the source tar
         process = popen("git ls-files")
-        filenames = [Path(fn.strip()) for fn in process.readlines()]
+        filenames = [Path(fn.strip()) for fn in process.readlines() if fn.strip()]
         process.close()
         source_prefix = Path(f"{NAME}-source-{version}")
         with tar_open(source_tar_file, "w:gz") as tar:
             for filename in filenames:
-                tar.add(filename, arcname=source_prefix / filename, filter=tar_filter)
+                if filename.exists():
+                    tar.add(filename, arcname=source_prefix / filename, filter=tar_filter)
 
     if args.release_packaging:
         for (target, tool_target) in SUPPORTED_HOST_TARGETS.items():
