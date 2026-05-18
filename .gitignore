@@ -8,6 +8,6 @@ root/example/*/build_*
 *.elf
 *.o
 *.DS_Store
-root/example/base-nexs-dev-stable/
+root/example/base-nexs/
 # Dipendenze scaricate localmente
 dependencies/

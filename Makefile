@@ -128,10 +128,18 @@ x86_64:
 		-kernel $(EXAMPLE_DIR)/build_x86_64/sel4_32.elf \
 		-initrd $(EXAMPLE_DIR)/build_x86_64/loader.img
 
-# NEXS stable directory
-NEXS_DIR := $(SDK_SRC_DIR)/example/base-nexs-dev-stable
+# NEXS runtime directory (populated by fetch-deps)
+NEXS_DIR := $(SDK_SRC_DIR)/example/base-nexs
 
 run-nexs-aarch64:
+	@if [ ! -d "$(NEXS_DIR)" ]; then \
+		echo ""; \
+		echo "[error] NEXS runtime not found at $(NEXS_DIR)"; \
+		echo "        Run:  make fetch-deps"; \
+		echo "        This will clone base-nexs and copy it into root/example/base-nexs."; \
+		echo ""; \
+		exit 1; \
+	fi
 	@if [ ! -f "$(SDK_DIR)/board/qemu_virt_aarch64/debug/include/kernel/gen_config.h" ]; then \
 		echo "SDK not built for aarch64. Run: make build-sdk-aarch64"; \
 		exit 1; \
@@ -162,6 +170,14 @@ run-nexs-aarch64:
 		-m size=2G
 
 run-nexs-riscv64:
+	@if [ ! -d "$(NEXS_DIR)" ]; then \
+		echo ""; \
+		echo "[error] NEXS runtime not found at $(NEXS_DIR)"; \
+		echo "        Run:  make fetch-deps"; \
+		echo "        This will clone base-nexs and copy it into root/example/base-nexs."; \
+		echo ""; \
+		exit 1; \
+	fi
 	@if [ ! -f "$(SDK_DIR)/board/qemu_virt_riscv64/debug/include/kernel/gen_config.h" ]; then \
 		echo "SDK not built for riscv64. Run: make build-sdk-riscv64"; \
 		exit 1; \
@@ -191,6 +207,14 @@ run-nexs-riscv64:
 		-m size=2G
 
 run-nexs-x86_64:
+	@if [ ! -d "$(NEXS_DIR)" ]; then \
+		echo ""; \
+		echo "[error] NEXS runtime not found at $(NEXS_DIR)"; \
+		echo "        Run:  make fetch-deps"; \
+		echo "        This will clone base-nexs and copy it into root/example/base-nexs."; \
+		echo ""; \
+		exit 1; \
+	fi
 	@if [ ! -f "$(SDK_DIR)/board/x86_64_generic/debug/include/kernel/gen_config.h" ]; then \
 		echo "SDK not built for x86_64. Run: make build-sdk-x86_64"; \
 		exit 1; \
@@ -266,13 +290,16 @@ BASE_NEXS_DIR ?= dependencies/base-nexs
 fetch-deps:
 	@mkdir -p dependencies
 	@if [ ! -d "$(BASE_NEXS_DIR)" ]; then \
-		echo "[deps] Cloning base-nexs from https://github.com/olmox001/base-nexs..."; \
-		git clone https://github.com/olmox001/base-nexs $(BASE_NEXS_DIR); \
+		echo "[deps] Cloning base-nexs (branch dev-sel4)..."; \
+		git clone --branch dev-sel4 https://github.com/olmox001/base-nexs.git $(BASE_NEXS_DIR); \
 	else \
 		echo "[deps] Updating base-nexs..."; \
 		git -C $(BASE_NEXS_DIR) pull; \
 	fi
-	@echo "[deps] base-nexs ready at $(BASE_NEXS_DIR)"
+	@echo "[deps] Copying base-nexs → $(NEXS_DIR) ..."
+	@mkdir -p $(NEXS_DIR)
+	@cp -r $(BASE_NEXS_DIR)/. $(NEXS_DIR)/
+	@echo "[deps] base-nexs ready at $(NEXS_DIR)"
 
 # Build the NEXS host binary from base-nexs dependency
 nexs-host: fetch-deps
