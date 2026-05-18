@@ -307,7 +307,7 @@ fetch-deps:
 	@mkdir -p dependencies
 	@if [ ! -d "$(BASE_NEXS_DIR)" ]; then \
 		echo "[deps] Cloning base-nexs (branch dev-stable)..."; \
-		git clone --branch dev-stable https://github.com/olmox001/base-nexs.git $(BASE_NEXS_DIR); \
+		git clone --branch dev-wasm https://github.com/olmox001/base-nexs.git $(BASE_NEXS_DIR); \
 	else \
 		echo "[deps] Updating base-nexs..."; \
 		git -C $(BASE_NEXS_DIR) pull; \
