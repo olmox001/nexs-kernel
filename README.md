@@ -34,14 +34,14 @@ Run `make` or `make help` to list all available targets.
 
 ## Repository layout
 
-This repo is the **SDK builder** for seL4 + Microkit. It does not contain the NEXS language runtime. The runtime is fetched automatically via `make fetch-deps` or used from the local path `root/example/base-nexs-dev-stable/` during development.
+This repo is the **SDK builder** for seL4 + Microkit. It does not contain the NEXS language runtime. The runtime is fetched automatically via `make fetch-deps` or used from the local path `root/example/base-nexs/` during development.
 
 ## Directory layout
 
 | Path | What it is |
 |------|-----------|
 | `root/` | Microkit SDK source + `build_sdk.py` |
-| `root/example/base-nexs-dev-stable/` | NEXS runtime (dev copy; published as [olmox001/base-nexs](https://github.com/olmox001/base-nexs)) |
+| `root/example/base-nexs/` | NEXS runtime (dev copy; published as [olmox001/base-nexs](https://github.com/olmox001/base-nexs)) |
 | `kernel/` | seL4 kernel core (arch-independent) |
 | `aarch/` | ARM 32/64-bit arch support |
 | `scratch/reference/seL4` | seL4 reference clone used for SDK builds |

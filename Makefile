@@ -20,7 +20,7 @@ SEL4_SRC_DIR := $(ROOT_DIR)/scratch/reference/seL4
 SDK_DIR      := $(SDK_SRC_DIR)/release/microkit-sdk-2.2.0-dev
 EXAMPLE_DIR  := $(SDK_SRC_DIR)/example/hello
 
-.PHONY: all help clean \
+.PHONY: all help clean clean-sdk clean-all \
         aarch64 riscv64 x86_64 x86_32 \
         build-sdk-aarch64 build-sdk-riscv64 build-sdk-x86_64 build-sdk-amd64 \
         kernel-check kernel-merge \
@@ -39,7 +39,7 @@ help:
 	@echo "    build-sdk-riscv64   Build Microkit SDK for riscv64"
 	@echo "    build-sdk-x86_64    Build Microkit SDK for x86_64"
 	@echo ""
-	@echo "  NEXS (base-nexs-dev-stable):"
+	@echo "  NEXS (base-nexs):"
 	@echo "    run-nexs-aarch64    Compile + package + run NEXS under seL4 aarch64"
 	@echo "    run-nexs-riscv64    Compile + package + run NEXS under seL4 riscv64"
 	@echo "    run-nexs-x86_64     Compile + package + run NEXS under seL4 x86_64"
@@ -325,13 +325,22 @@ nexs-run-riscv64: nexs-sel4-riscv64
 nexs-run-x86_64: nexs-sel4-x86_64
 	$(MAKE) -C $(BASE_NEXS_DIR) sel4-run-x86_64 MICROKIT_SDK=$(SDK_DIR)
 
-# Clean all build outputs
+# Clean build outputs (SDK is preserved — use clean-sdk to also wipe the SDK)
 clean:
-	@echo "Cleaning workspace build directories..."
+	@echo "Cleaning workspace build directories (SDK preserved)..."
 	rm -rf $(EXAMPLE_DIR)/build_aarch64
 	rm -rf $(EXAMPLE_DIR)/build_riscv64
 	rm -rf $(EXAMPLE_DIR)/build_x86_64
-	rm -rf $(SDK_SRC_DIR)/release
 	rm -rf $(SDK_SRC_DIR)/build
 	rm -rf $(SDK_SRC_DIR)/target
-	@echo "Clean completed successfully!"
+	@echo "Clean completed. SDK untouched at $(SDK_DIR)"
+
+# Remove only the compiled SDK (forces rebuild on next build-sdk-* call)
+clean-sdk:
+	@echo "Removing compiled SDK at $(SDK_SRC_DIR)/release ..."
+	rm -rf $(SDK_SRC_DIR)/release
+	@echo "SDK removed. Rebuild with: make build-sdk-<arch>"
+
+# Remove everything including SDK
+clean-all: clean clean-sdk
+	@echo "Full clean completed."
