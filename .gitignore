@@ -1,6 +1,7 @@
 scratch/*
 root/release/
 root/build/
+root/target/
 root/example/*/build_*
 *.tar.gz
 *.img
