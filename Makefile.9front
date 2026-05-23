@@ -1,0 +1,12 @@
+# 9front example targets and variables for seL4 + Microkit
+
+9FRONT_DIR := $(SDK_SRC_DIR)/example/9front
+BASE_9FRONT_DIR ?= $(9FRONT_DIR)
+
+.PHONY: fetch-deps-9front
+
+# Sincronizzazione ed inizializzazione dipendenza 9front
+fetch-deps-9front:
+	@echo "[deps-9front] Initializing and updating 9front submodule..."
+	@git submodule update --init --recursive $(9FRONT_DIR)
+	@echo "[deps-9front] 9front ready at $(9FRONT_DIR)"

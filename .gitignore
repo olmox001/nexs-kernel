@@ -8,6 +8,7 @@ root/example/*/build_*
 *.elf
 *.o
 *.DS_Store
-root/example/base-nexs/
+# root/example/base-nexs/ (gestito tramite Git Submodule)
+# root/example/9front/ (gestito tramite Git Submodule)
 # Dipendenze scaricate localmente
 dependencies/
