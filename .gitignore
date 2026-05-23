@@ -12,3 +12,4 @@ root/example/*/build_*
 # root/example/9front/ (gestito tramite Git Submodule)
 # Dipendenze scaricate localmente
 dependencies/
+9front

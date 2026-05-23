@@ -4,4 +4,5 @@
 	branch = sel4-support
 [submodule "root/example/9front"]
 	path = root/example/9front
-	url = https://github.com/9front/9front.git
+	url = https://github.com/olmox001/plan9-nexs.git
+	branch = plan9-nexs
