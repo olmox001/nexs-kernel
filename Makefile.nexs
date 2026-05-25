@@ -32,7 +32,7 @@ run-nexs-aarch64:
 	@echo "Running NEXS under seL4 QEMU Simulation..."
 	@echo "========================================="
 	qemu-system-aarch64 \
-		-machine virt,virtualization=on \
+		-machine virt,virtualization=on,gic-version=3 \
 		-cpu cortex-a53 \
 		-nographic \
 		-smp 4 \
