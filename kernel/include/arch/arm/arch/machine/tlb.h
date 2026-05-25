@@ -12,6 +12,8 @@
 #include <armv/tlb.h>
 #endif
 
+#define ACTIVE_CPU_MASK (CONFIG_MAX_NUM_NODES >= 64 ? ~0UL : (1UL << (CONFIG_MAX_NUM_NODES % 64)) - 1)
+
 static inline void invalidateTranslationSingleLocal(vptr_t vptr)
 {
 #if defined(CONFIG_ARM_HYPERVISOR_SUPPORT) && defined(CONFIG_ARCH_AARCH64)
@@ -38,18 +40,18 @@ static inline void invalidateTranslationAllLocal(void)
 static inline void invalidateTranslationSingle(vptr_t vptr)
 {
     invalidateTranslationSingleLocal(vptr);
-    SMP_COND_STATEMENT(doRemoteInvalidateTranslationSingle(vptr, MASK(CONFIG_MAX_NUM_NODES)));
+    SMP_COND_STATEMENT(doRemoteInvalidateTranslationSingle(vptr, ACTIVE_CPU_MASK));
 }
 
 static inline void invalidateTranslationASID(hw_asid_t hw_asid)
 {
     invalidateTranslationASIDLocal(hw_asid);
-    SMP_COND_STATEMENT(doRemoteInvalidateTranslationASID(hw_asid, MASK(CONFIG_MAX_NUM_NODES)));
+    SMP_COND_STATEMENT(doRemoteInvalidateTranslationASID(hw_asid, ACTIVE_CPU_MASK));
 }
 
 static inline void invalidateTranslationAll(void)
 {
     invalidateTranslationAllLocal();
-    SMP_COND_STATEMENT(doRemoteInvalidateTranslationAll(MASK(CONFIG_MAX_NUM_NODES)));
+    SMP_COND_STATEMENT(doRemoteInvalidateTranslationAll(ACTIVE_CPU_MASK));
 }
 

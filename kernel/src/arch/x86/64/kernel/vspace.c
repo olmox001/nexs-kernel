@@ -1676,7 +1676,7 @@ exception_t benchmark_arch_map_logBuffer(word_t frame_cptr)
 #else
     x64KSKernelPDs[BIT(PDPT_INDEX_BITS) - 1][1] = pde;
 #endif
-    invalidateTranslationAll(MASK(CONFIG_MAX_NUM_NODES));
+    invalidateTranslationAll(CONFIG_MAX_NUM_NODES >= 64 ? ~0UL : MASK(CONFIG_MAX_NUM_NODES));
 
     return EXCEPTION_NONE;
 }
