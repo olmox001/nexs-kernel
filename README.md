@@ -43,8 +43,15 @@ This repo is the **SDK builder** for seL4 + Microkit. It does not contain the NE
 | Path | What it is |
 |------|-----------|
 | `root/` | Microkit SDK source + `build_sdk.py` |
+| `root/rust-sel4/` | Local patched copy of `rust-sel4` used to build the `sel4-capdl-initializer` with CPU affinity fallback |
 | `root/example/base-nexs/` | NEXS runtime (dev copy; published as [olmox001/base-nexs](https://github.com/olmox001/base-nexs)) |
-| `kernel/` | seL4 kernel core (arch-independent) |
-| `aarch/` | ARM 32/64-bit arch support |
-| `scratch/reference/seL4` | seL4 reference clone used for SDK builds |
+| `kernel/` | Complete local, version-controlled seL4 microkernel source tree |
+| `aarch/` | ARM 32/64-bit architecture source files |
 | `dependencies/` | External dependencies fetched by `make fetch-deps` |
+
+## Multi-Core (SMP) & Resilient CPU Fallback
+
+To support both high-performance multi-core execution (SMP) and single-core retrocompatibility, the project integrates a custom patched version of the `rust-sel4` repository:
+1. **Dynamic SMP allocation:** Protection Domains (PDs) are assigned to dedicated CPU cores (`cpu="0"`, `cpu="1"`, `cpu="2"`, `cpu="3"`) in the `nexs_x86_64.system` description.
+2. **Resilient runtime fallback:** If the system is booted on a machine with fewer active CPU cores than configured (e.g. QEMU launched with `-smp 1`), the custom `sel4-capdl-initializer` (located under `root/rust-sel4/`) dynamically detects the offline cores and gracefully falls back to CPU 0 instead of panicking, logging a warning to the console.
+

@@ -25,7 +25,7 @@ run-nexs-aarch64:
 	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/hal/sel4/nexs_aarch64.system \
 		--search-path $(NEXS_DIR)/build/sel4-multikernel \
 		--board qemu_virt_aarch64 \
-		--config debug \
+		--config smp-debug \
 		-o $(NEXS_DIR)/build_aarch64/loader.img \
 		-r $(NEXS_DIR)/build_aarch64/report.txt
 	@echo "========================================="
@@ -35,6 +35,7 @@ run-nexs-aarch64:
 		-machine virt,virtualization=on \
 		-cpu cortex-a53 \
 		-nographic \
+		-smp 4 \
 		-serial mon:stdio \
 		-device loader,file=$(NEXS_DIR)/build_aarch64/loader.img,addr=0x70000000,cpu-num=0 \
 		-m size=2G
@@ -63,7 +64,7 @@ run-nexs-riscv64:
 	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/hal/sel4/nexs_riscv64.system \
 		--search-path $(NEXS_DIR)/build/sel4-multikernel \
 		--board qemu_virt_riscv64 \
-		--config debug \
+		--config smp-debug \
 		-o $(NEXS_DIR)/build_riscv64/loader.img \
 		-r $(NEXS_DIR)/build_riscv64/report.txt
 	@echo "========================================="
@@ -72,6 +73,7 @@ run-nexs-riscv64:
 	qemu-system-riscv64 \
 		-machine virt \
 		-nographic \
+		-smp 4 \
 		-serial mon:stdio \
 		-kernel $(NEXS_DIR)/build_riscv64/loader.img \
 		-m size=2G
@@ -100,7 +102,7 @@ run-nexs-x86_64:
 	$(SDK_DIR)/bin/microkit $(NEXS_DIR)/hal/sel4/nexs_x86_64.system \
 		--search-path $(NEXS_DIR)/build/sel4-multikernel \
 		--board x86_64_generic \
-		--config debug \
+		--config smp-debug \
 		-o $(NEXS_DIR)/build_x86_64/loader.img \
 		-r $(NEXS_DIR)/build_x86_64/report.txt
 	@echo "========================================="
@@ -109,6 +111,7 @@ run-nexs-x86_64:
 	qemu-system-x86_64 \
 		-cpu qemu64,+fsgsbase,+pdpe1gb,+xsaveopt,+xsave \
 		-m 1G \
+		-smp 2 \
 		-display none \
 		-serial mon:stdio \
 		-kernel $(NEXS_DIR)/build_x86_64/sel4_32.elf \

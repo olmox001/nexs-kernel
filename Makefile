@@ -15,7 +15,7 @@ LLVM := True
 #               Use SEL4_LOCAL once aarch/ is merged into kernel/src/arch/arm/.
 #   scratch/  = reference clone — used for all SDK builds until merge is done.
 SEL4_LOCAL   := $(ROOT_DIR)/kernel
-SEL4_SRC_DIR := $(ROOT_DIR)/scratch/reference/seL4
+SEL4_SRC_DIR := $(ROOT_DIR)/kernel
 
 SDK_DIR      := $(SDK_SRC_DIR)/release/microkit-sdk-2.2.0-dev
 EXAMPLE_DIR  := $(SDK_SRC_DIR)/example/hello
@@ -59,19 +59,19 @@ build-sdk-aarch64:
 	@echo "========================================="
 	@echo "Building SDK for AArch64 (qemu_virt_aarch64)..."
 	@echo "========================================="
-	cd $(SDK_SRC_DIR) && $(PYTHON) build_sdk.py --sel4 $(SEL4_SRC_DIR) --boards qemu_virt_aarch64 --configs debug --skip-docs --llvm
+	cd $(SDK_SRC_DIR) && $(PYTHON) build_sdk.py --sel4 $(SEL4_SRC_DIR) --boards qemu_virt_aarch64 --configs debug,smp-debug --skip-docs --llvm
 
 build-sdk-riscv64:
 	@echo "========================================="
 	@echo "Building SDK for RISC-V 64-bit (qemu_virt_riscv64)..."
 	@echo "========================================="
-	cd $(SDK_SRC_DIR) && $(PYTHON) build_sdk.py --sel4 $(SEL4_SRC_DIR) --boards qemu_virt_riscv64 --configs debug --skip-docs --llvm
+	cd $(SDK_SRC_DIR) && $(PYTHON) build_sdk.py --sel4 $(SEL4_SRC_DIR) --boards qemu_virt_riscv64 --configs debug,smp-debug --skip-docs --llvm
 
 build-sdk-x86_64:
 	@echo "========================================="
 	@echo "Building SDK for AMD64 (x86_64_generic)..."
 	@echo "========================================="
-	cd $(SDK_SRC_DIR) && $(PYTHON) build_sdk.py --sel4 $(SEL4_SRC_DIR) --boards x86_64_generic --configs debug --skip-docs --llvm
+	cd $(SDK_SRC_DIR) && $(PYTHON) build_sdk.py --sel4 $(SEL4_SRC_DIR) --boards x86_64_generic --configs debug,smp-debug --skip-docs --llvm
 
 build-sdk-amd64: build-sdk-x86_64
 
@@ -155,17 +155,8 @@ kernel-check:
 kernel-merge:
 	@echo "Merging aarch/ → kernel/src/arch/arm/ ..."
 	@mkdir -p $(SEL4_LOCAL)/src/arch/arm
-	@cp -r $(ROOT_DIR)/aarch/64      $(SEL4_LOCAL)/src/arch/arm/
-	@cp -r $(ROOT_DIR)/aarch/32      $(SEL4_LOCAL)/src/arch/arm/
-	@cp -r $(ROOT_DIR)/aarch/armv    $(SEL4_LOCAL)/src/arch/arm/
-	@cp -r $(ROOT_DIR)/aarch/api     $(SEL4_LOCAL)/src/arch/arm/
-	@cp -r $(ROOT_DIR)/aarch/machine $(SEL4_LOCAL)/src/arch/arm/
-	@cp -r $(ROOT_DIR)/aarch/object  $(SEL4_LOCAL)/src/arch/arm/
-	@cp -r $(ROOT_DIR)/aarch/kernel  $(SEL4_LOCAL)/src/arch/arm/
-	@cp -r $(ROOT_DIR)/aarch/smp     $(SEL4_LOCAL)/src/arch/arm/
-	@[ -f $(ROOT_DIR)/aarch/config.cmake ] && \
-		cp $(ROOT_DIR)/aarch/config.cmake $(SEL4_LOCAL)/src/arch/arm/ || true
-	@echo "Done. Now set SEL4_SRC_DIR := \$$(SEL4_LOCAL) in this Makefile and rebuild."
+	@cp -R $(ROOT_DIR)/aarch/* $(SEL4_LOCAL)/src/arch/arm/
+	@echo "Done."
 
 
 

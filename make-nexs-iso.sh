@@ -75,11 +75,12 @@ test_iso() {
     echo "🚀 Avvio in QEMU (con fsgsbase + pdpe1gb)..."
 qemu-system-x86_64 \
     -cpu qemu64,+fsgsbase,+pdpe1gb,+xsaveopt,+xsave \
-    -smp 4 \
+    -smp 8 \
     -m 1G \
     -cdrom "$ISO" \
     -boot d \
     $QEMU_DISPLAY \
+    -serial mon:stdio \
     -chardev vc,id=uart0 \
     -serial chardev:uart0 \
 
