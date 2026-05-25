@@ -6,3 +6,7 @@
 	path = root/example/9front
 	url = https://github.com/olmox001/plan9-nexs.git
 	branch = plan9-nexs
+[submodule "root/rust-sel4"]
+	path = root/rust-sel4
+	url = https://github.com/olmox001/nexs-rust-sel4.git
+	branch = sel4-support
