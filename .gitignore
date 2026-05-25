@@ -14,3 +14,5 @@ root/example/*/build_*
 dependencies/
 9front
 .venv/
+*.iso
+iso/*
