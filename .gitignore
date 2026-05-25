@@ -13,3 +13,4 @@ root/example/*/build_*
 # Dipendenze scaricate localmente
 dependencies/
 9front
+.venv/

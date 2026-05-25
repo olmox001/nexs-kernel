@@ -1,7 +1,7 @@
 [submodule "root/example/base-nexs"]
 	path = root/example/base-nexs
 	url = https://github.com/olmox001/base-nexs.git
-	branch = sel4-support
+	branch = dev-sel4
 [submodule "root/example/9front"]
 	path = root/example/9front
 	url = https://github.com/olmox001/plan9-nexs.git
