@@ -12,7 +12,7 @@ mkdir -p "${ISO_DIR}"
 
 BREW_PREFIX=$(brew --prefix)
 LIMINE_BIN="$BREW_PREFIX/bin/limine"
-
+QEMU_DISPLAY="-display cocoa"
 # =============================================================================
 create_iso() {
     local ARCH="$1"
@@ -73,13 +73,16 @@ test_iso() {
     [ ! -f "$ISO" ] && create_iso "x86_64"
 
     echo "🚀 Avvio in QEMU (con fsgsbase + pdpe1gb)..."
-    qemu-system-x86_64 \
-        -cpu qemu64,+fsgsbase,+pdpe1gb,+xsaveopt,+xsave \
-        -m 1G \
-        -cdrom "$ISO" \
-        -boot d \
-        -serial mon:stdio \
-        -nographic
+qemu-system-x86_64 \
+    -cpu qemu64,+fsgsbase,+pdpe1gb,+xsaveopt,+xsave \
+    -smp 4 \
+    -m 1G \
+    -cdrom "$ISO" \
+    -boot d \
+    $QEMU_DISPLAY \
+    -chardev vc,id=uart0 \
+    -serial chardev:uart0 \
+
 }
 
 # =============================================================================
