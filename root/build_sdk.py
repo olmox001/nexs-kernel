@@ -41,7 +41,7 @@ TRIPLE_X86_64 = "x86_64-linux-gnu"
 KERNEL_CONFIG_TYPE = Union[bool, str]
 KERNEL_OPTIONS = Dict[str, Union[bool, str]]
 
-DEFAULT_X86_NUM_CPUS = 16
+DEFAULT_X86_NUM_CPUS = 64
 
 DEFAULT_KERNEL_OPTIONS = {
     "KernelIsMCS": True,
@@ -272,7 +272,7 @@ SUPPORTED_BOARDS = (
         arch=KernelArch.AARCH64,
         gcc_cpu="cortex-a53",
         loader_link_address=0x70000000,
-        smp_cores=4,
+        smp_cores=64,
         kernel_options={
             "KernelPlatform": "qemu-arm-virt",
             "QEMU_MEMORY": "2048",
@@ -286,7 +286,7 @@ SUPPORTED_BOARDS = (
         arch=KernelArch.RISCV64,
         gcc_cpu=None,
         loader_link_address=0x90000000,
-        smp_cores=4,
+        smp_cores=64,
         kernel_options={
             "KernelPlatform": "qemu-riscv-virt",
             "QEMU_MEMORY": "2048",
