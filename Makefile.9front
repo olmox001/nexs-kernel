@@ -1,12 +1,105 @@
 # 9front example targets and variables for seL4 + Microkit
-
 9FRONT_DIR := $(SDK_SRC_DIR)/example/9front
+# Display backend — cocoa is macOS-only; fall back to gtk on Linux
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+  QEMU_DISPLAY := -display cocoa
+else
+  QEMU_DISPLAY := -display gtk
+endif
 BASE_9FRONT_DIR ?= $(9FRONT_DIR)
+9FRONT_SEL4_DIR := $(9FRONT_DIR)/sys/src/9/sel4
+SDK_DIR := $(SDK_SRC_DIR)/release/microkit-sdk-2.2.0-dev
 
-.PHONY: fetch-deps-9front
+LLVM := False
+
+.PHONY: fetch-deps-9front \
+        build-plan9-aarch64 run-plan9-aarch64 run-plan9-aarch64-nographic \
+        build-plan9-x86_64 run-plan9-x86_64 \
+        clean-plan9 clean-plan9-aarch64 clean-plan9-x86_64
 
 # Sincronizzazione ed inizializzazione dipendenza 9front
 fetch-deps-9front:
-	@echo "[deps-9front] Initializing and updating 9front submodule..."
-	@git submodule update --init --recursive $(9FRONT_DIR)
+	@echo "[deps-9front] Checking 9front submodule..."
+	@if [ ! -f "$(9FRONT_SEL4_DIR)/Makefile" ]; then \
+		echo "[deps-9front] Initializing submodule..."; \
+		git submodule update --init --recursive $(9FRONT_DIR); \
+	else \
+		echo "[deps-9front] Already initialized — skipping checkout."; \
+	fi
 	@echo "[deps-9front] 9front ready at $(9FRONT_DIR)"
+
+# ── AArch64 (qemu_virt_aarch64) ──────────────────────────────────────────────
+build-plan9-aarch64: fetch-deps-9front
+	@echo "[plan9] Building Phase 1 — aarch64..."
+	$(MAKE) -C $(9FRONT_SEL4_DIR) \
+		BUILD_DIR=$(abspath $(9FRONT_SEL4_DIR))/build_aarch64 \
+		MICROKIT_BOARD=qemu_virt_aarch64 \
+		MICROKIT_CONFIG=debug \
+		MICROKIT_SDK=$(abspath $(SDK_DIR)) \
+		LLVM=$(LLVM) \
+		all
+
+clean-plan9-aarch64:
+	@echo "[plan9] Cleaning aarch64 build..."
+	$(MAKE) -C $(9FRONT_SEL4_DIR) \
+		BUILD_DIR=$(abspath $(9FRONT_SEL4_DIR))/build_aarch64 \
+		clean || true
+	rm -rf $(9FRONT_SEL4_DIR)/build_aarch64
+
+run-plan9-aarch64: build-plan9-aarch64
+	@echo "[plan9] Running aarch64 in QEMU with graphics (Ctrl-A X to quit)..."
+	qemu-system-aarch64 \
+		-machine virt,virtualization=on,highmem=off \
+		-cpu cortex-a53 \
+		-m size=2G \
+		-serial mon:stdio \
+		-device loader,file=$(abspath $(9FRONT_SEL4_DIR))/build_aarch64/loader.img,addr=0x70000000,cpu-num=0 \
+		-device VGA \
+		-device virtio-keyboard-device \
+		-device virtio-tablet-device \
+		$(QEMU_DISPLAY)
+
+run-plan9-aarch64-nographic: build-plan9-aarch64
+	@echo "[plan9] Running aarch64 in QEMU headless (Ctrl-A X to quit)..."
+	qemu-system-aarch64 \
+		-machine virt,virtualization=on \
+		-cpu cortex-a53 \
+		-m size=2G \
+		-nographic \
+		-serial mon:stdio \
+		-device loader,file=$(abspath $(9FRONT_SEL4_DIR))/build_aarch64/loader.img,addr=0x70000000,cpu-num=0
+
+# ── x86_64 (x86_64_generic) ──────────────────────────────────────────────────
+build-plan9-x86_64: fetch-deps-9front
+	@echo "[plan9] Building Phase 1 — x86_64..."
+	$(MAKE) -C $(9FRONT_SEL4_DIR) \
+		BUILD_DIR=$(abspath $(9FRONT_SEL4_DIR))/build_x86_64 \
+		MICROKIT_BOARD=x86_64_generic \
+		MICROKIT_CONFIG=debug \
+		MICROKIT_SDK=$(abspath $(SDK_DIR)) \
+		LLVM=$(LLVM) \
+		all
+
+clean-plan9-x86_64:
+	@echo "[plan9] Cleaning x86_64 build..."
+	$(MAKE) -C $(9FRONT_SEL4_DIR) \
+		BUILD_DIR=$(abspath $(9FRONT_SEL4_DIR))/build_x86_64 \
+		clean || true
+	rm -rf $(9FRONT_SEL4_DIR)/build_x86_64
+
+run-plan9-x86_64: build-plan9-x86_64
+	@echo "[plan9] Running x86_64 in QEMU (Ctrl-A X to quit)..."
+	qemu-system-x86_64 \
+		-cpu qemu64,+fsgsbase,+pdpe1gb,+xsaveopt,+xsave \
+		-m 1G \
+		-serial mon:stdio \
+		-device VGA \
+		-device virtio-keyboard-device \
+		$(QEMU_DISPLAY) \
+		-kernel $(abspath $(SDK_DIR))/board/x86_64_generic/debug/elf/sel4_32.elf \
+		-initrd $(abspath $(9FRONT_SEL4_DIR))/build_x86_64/loader.img
+
+# ── Plan 9 specific clean (use clean-plan9 or parent's clean delegates here) ─
+clean-plan9: clean-plan9-aarch64 clean-plan9-x86_64
+	@echo "[plan9] Full plan9 clean completed."

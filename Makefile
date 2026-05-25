@@ -20,7 +20,7 @@ SEL4_SRC_DIR := $(ROOT_DIR)/scratch/reference/seL4
 SDK_DIR      := $(SDK_SRC_DIR)/release/microkit-sdk-2.2.0-dev
 EXAMPLE_DIR  := $(SDK_SRC_DIR)/example/hello
 
-.PHONY: all help clean clean-sdk clean-all \
+.PHONY: all help clean clean-sdk clean-all clean-plan9 \
         aarch64 riscv64 x86_64 x86_32 \
         build-sdk-aarch64 build-sdk-riscv64 build-sdk-x86_64 build-sdk-amd64 \
         kernel-check kernel-merge \
@@ -170,7 +170,7 @@ kernel-merge:
 
 
 # Clean build outputs (SDK is preserved — use clean-sdk to also wipe the SDK)
-clean:
+clean: clean-plan9
 	@echo "Cleaning workspace build directories (SDK preserved)..."
 	rm -rf $(EXAMPLE_DIR)/build_aarch64
 	rm -rf $(EXAMPLE_DIR)/build_riscv64
